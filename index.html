@@ -1,0 +1,1447 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>中文口語發音練習（Book2_A2）</title>
+  <style>
+    body { font-family: "Microsoft JhengHei", Arial, sans-serif; background:#fafafa; margin:0; padding:20px; }
+    .container { max-width: 980px; margin:0 auto; background:#fff; padding:20px; border-radius:12px; box-shadow:0 0 10px rgba(0,0,0,.08); }
+    h1 { text-align:center; margin-top:0; color:#333; }
+    h2 { margin-top:28px; }
+    button, input[type="text"] { padding:8px 12px; margin:5px; font-size:16px; }
+    .sentence { font-size:20px; text-align:center; margin:20px 0; padding:10px; background:#f1f1f1; border-radius:8px; }
+    #result, #diff, #quizDiff, .box { padding:10px; margin-top:10px; background:#f9f9f9; border:1px solid #ddd; min-height:30px; border-radius:8px; }
+    .row { margin:6px 0; }
+    .label { color:#666; font-size:14px; margin-right:6px; }
+    .highlight { background:yellow; font-weight:bold; }
+    .ok { background:rgba(22,163,74,.12); }
+    .note { color:#6b7280; font-size:12px; }
+    .scoreRow { display:flex; align-items:center; gap:12px; flex-wrap:wrap; }
+    #feedback { color:#374151; font-size:15px; }
+    .muted { color:#6b7280; }
+    .flex { display:flex; gap:20px; flex-wrap:wrap; }
+    .col { flex:1 1 380px; }
+    table { width:100%; border-collapse:collapse; }
+    th, td { border-bottom:1px solid #eaeaea; padding:8px; text-align:left; vertical-align:top; }
+    .actions { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    .em { font-weight:600; }
+    .pill { display:inline-block; background:#eef2ff; padding:2px 8px; border-radius:999px; font-size:12px; margin:2px 6px 2px 0; }
+    .list { display:flex; flex-wrap:wrap; }
+    .two { display:grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .wide { width:100%; }
+    .checks { max-height: 240px; overflow:auto; border:1px solid #e5e7eb; padding:8px; border-radius:8px; background:#fff; }
+    .check-item { display:flex; align-items:center; gap:8px; padding:4px 0; }
+    .muted-small { color:#9ca3af; font-size:12px; }
+    .recording { background-color: #ef4444 !important; color: white; }
+    .mobile-note { background: #fef3c7; padding: 10px; border-radius: 8px; margin: 10px 0; font-size: 14px; color: #92400e; }
+
+    /* Research consent */
+    .research-modal { position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,.72); display:flex; align-items:center; justify-content:center; padding:18px; }
+    .research-modal.hidden { display:none; }
+    .research-card { max-width:680px; width:100%; max-height:90vh; overflow:auto; background:#fff; border-radius:14px; padding:22px; box-shadow:0 20px 60px rgba(0,0,0,.28); }
+    .research-card h2 { margin-top:0; }
+    .research-actions { display:flex; gap:10px; flex-wrap:wrap; margin-top:16px; }
+    .research-settings { margin-top:18px; padding-top:12px; border-top:1px solid #eee; font-size:13px; color:#6b7280; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>中文口語發音練習（Book2_A2）</h1>
+    <div class="author-info">
+      作者：黃郁婷（中原大學全校外籍生大一不分系）<br>
+      聯絡方式：<a href="mailto:huangyuting@cycu.edu.tw">huangyuting@cycu.edu.tw</a>
+    </div>
+    <div class="box two">
+      <div>
+        <label class="label">姓名：</label>
+        <input type="text" id="studentName" placeholder="可留空" class="wide" />
+      </div>
+      <div>
+        <label class="label">學號：</label>
+        <input type="text" id="studentId" placeholder="可留空" class="wide" />
+      </div>
+    </div>
+
+    <h2>選擇課次（可複選）</h2>
+    <div class="box">
+      <div class="actions">
+        <button onclick="checkAllLessons()">全選</button>
+        <button onclick="uncheckAllLessons()">清空</button>
+      </div>
+      <div id="lessonChecks" class="checks"></div>
+      <div class="muted-small">已選課次：<span id="selCount">0</span>；可用句子：<span id="sentCount">0</span></div>
+    </div>
+
+    <div class="flex">
+      <div class="col">
+        <h2>練習（抽選「例句」）</h2>
+        <div class="actions">
+          <button onclick="newSentence()">換一句</button>
+        </div>
+
+        <div class="sentence" id="sentence">請按「換一句」生成句子（需先勾課次）</div>
+
+        <div class="actions">
+          <button id="btnStart" onclick="startRecognition()">🎙️ 開始錄音</button>
+          <button id="btnStop" onclick="stopRecognition()" disabled>■ 結束錄音</button>
+          <button onclick="playSentence()">🔊 示範發音</button>
+        </div>
+
+        <h3>辨識結果：</h3>
+        <div id="result">尚無結果</div>
+
+        <h3>差異高光：</h3>
+        <div id="diff">尚無結果</div>
+        <div class="note">說明：綠底為一致，高光為不同；例句缺漏以 <b>∅</b> 顯示，辨識多唸會在「辨識」行以高光顯示。</div>
+
+        <h3>正確率：</h3>
+        <div class="scoreRow">
+          <div id="accuracy">—</div>
+          <div id="feedback"></div>
+          <button id="btnDownload" onclick="downloadTxt()">⬇️ 下載成績（TXT）</button>
+        </div>
+      </div>
+
+      <div class="col">
+        <h2>測驗（從所選課次的例句抽題，共 3 題）</h2>
+        <div class="box">
+          <div class="muted">狀態：<span id="quizState">未開始</span></div>
+          <div class="sentence" id="quizSentence">（開始後顯示本題句子）</div>
+
+          <div class="actions">
+            <button onclick="startQuiz()">1開始測驗（3題）</button>
+            <button onclick="quizPlay()">🔊 示範發音</button>
+            <button id="btnQuizStart" onclick="quizRecord()">🎙️ 2開始錄音</button>
+            <button id="btnQuizStop" onclick="quizStop()" disabled>■ 結束錄音</button>
+            <button onclick="quizSubmit()">3下一題</button>
+          </div>
+
+          <div class="row"><span class="label">本題辨識：</span><span id="quizHeard">—</span></div>
+          <div id="quizDiff">（高光差異會顯示在這裡）</div>
+        </div>
+
+        <div id="quizSummary" class="box" style="display:none;">
+          <h3>本次測驗結果</h3>
+          <div class="row">總正確率：<b id="quizTotal">—</b></div>
+          <div class="row">總評（中 / EN）：<span id="quizFeedback" class="em">—</span></div>
+          <div class="row">姓名 / 學號：<span id="quizWho" class="em">—</span></div>
+          <div class="actions">
+            <button onclick="downloadQuizTXT()">⬇️ 下載成績（TXT）</button>
+            <button onclick="downloadQuizCSV()">⬇️ 下載成績（CSV）</button>
+          </div>
+
+          <h4>辨識比對表（3題）</h4>
+          <table id="quizTable">
+            <thead>
+              <tr>
+                <th style="width:40px;">題</th>
+                <th>例句 / 辨識（雙行高光）</th>
+                <th style="width:80px;">正確率</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="research-settings">
+    研究資料：<span id="researchConsentStatus">尚未選擇</span>
+    <button id="researchSettingsBtn" type="button">研究資料蒐集設定</button>
+  </div>
+
+  <div id="researchConsentModal" class="research-modal">
+    <div class="research-card">
+      <h2>使用者資料蒐集說明</h2>
+      <p>為了解本學習工具的實際使用情形，並作為課程改進與教學研究之參考，本系統可在您同意後，以匿名方式記錄部分使用資料。</p>
+      <p><b>可能記錄：</b>匿名使用者識別碼、使用日期與時間、使用階段、練習／測驗次數、課次、完成時間、示範發音與語音辨識功能使用情形、正確率，以及目標文字與語音辨識結果的字級比對統計（如正確、替代、漏讀、多讀）。</p>
+      <p><b>研究資料庫不蒐集：</b>姓名、學號、電子郵件、錄音檔或完整語音辨識文字。本研究系統不主動蒐集 IP 位址作為研究資料。</p>
+      <p>您可以不同意研究資料蒐集，仍可正常使用本工具；不同意時不會將研究事件傳送至研究資料庫。</p>
+      <div class="research-actions">
+        <button id="consentAcceptBtn" type="button">我了解並同意開始使用</button>
+        <button id="consentDeclineBtn" type="button">不同意資料蒐集，仍繼續使用</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-app.js";
+    import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-auth.js";
+    import { getFirestore, collection, addDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/12.3.0/firebase-firestore.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyBegbF1xGZzr3l89rhpUQ3Mt-SBk9A4BWM",
+      authDomain: "speaking-practice2.firebaseapp.com",
+      projectId: "speaking-practice2",
+      storageBucket: "speaking-practice2.firebasestorage.app",
+      messagingSenderId: "296798925937",
+      appId: "1:296798925937:web:f5fe31f43a731d040297d0",
+      measurementId: "G-ZEVQ6ZEP0Q"
+    };
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    window.saveResearchEventToFirebase = async (event) => {
+      if (!auth.currentUser) await signInAnonymously(auth);
+      const payload = { ...event, anonymous_id: auth.currentUser.uid, client_timestamp:event.timestamp, timestamp:serverTimestamp() };
+      await addDoc(collection(db, "events"), payload);
+      return auth.currentUser.uid;
+    };
+    window.dispatchEvent(new Event('firebase-research-ready'));
+  </script>
+
+<script>
+  // ===== Anonymous research tracking (Book2_A2) =====
+  const RESEARCH_APP_ID = 'speaking-practice-book2-a2';
+  let researchConsent = localStorage.getItem('research_consent_book2a2');
+  let anonymousUserId = localStorage.getItem('research_anonymous_id') || null;
+  const researchSessionId = 'S-' + (crypto.randomUUID ? crypto.randomUUID() : Date.now()+'-'+Math.random().toString(36).slice(2));
+  let practiceStartTime = null, practiceTtsCount = 0, practiceAttempt = 0;
+  let quizStartTime = null, quizTtsCount = 0;
+
+  function researchStatus(){
+    const el=document.getElementById('researchConsentStatus');
+    if(el) el.textContent=researchConsent==='accepted'?'已同意蒐集':researchConsent==='declined'?'未同意蒐集':'尚未選擇';
+  }
+  async function logResearchEvent(eventName, details={}){
+    if(researchConsent!=='accepted') return;
+    const event={app_id:RESEARCH_APP_ID, session_id:researchSessionId, event:eventName, timestamp:new Date().toISOString(), ...details};
+    try{
+      if(!window.saveResearchEventToFirebase) throw new Error('Firebase 尚未初始化');
+      const uid=await window.saveResearchEventToFirebase(event);
+      anonymousUserId=uid; localStorage.setItem('research_anonymous_id',uid);
+    }catch(err){ console.warn('研究事件送出失敗：',err); }
+  }
+  function initResearchConsent(){
+    const modal=document.getElementById('researchConsentModal');
+    if(researchConsent) modal.classList.add('hidden');
+    researchStatus();
+    document.getElementById('consentAcceptBtn').onclick=()=>{ researchConsent='accepted'; localStorage.setItem('research_consent_book2a2','accepted'); modal.classList.add('hidden'); researchStatus(); logResearchEvent('consent_given'); logResearchEvent('session_start'); };
+    document.getElementById('consentDeclineBtn').onclick=()=>{ researchConsent='declined'; localStorage.setItem('research_consent_book2a2','declined'); modal.classList.add('hidden'); researchStatus(); };
+    document.getElementById('researchSettingsBtn').onclick=()=>modal.classList.remove('hidden');
+    if(researchConsent==='accepted') logResearchEvent('session_start');
+  }
+  window.addEventListener('DOMContentLoaded',initResearchConsent);
+
+  function findLessonForSentence(sentence){
+    for(const [lesson,arr] of Object.entries(lessons)){ if((arr||[]).includes(sentence)) return lesson; }
+    return '';
+  }
+  function buildCharResearchData(targetRaw, heardRaw){
+    const {ops}=diffAlign(targetRaw,heardRaw);
+    const map=new Map(), errors=[];
+    for(const op of ops){
+      if(op.type==='INS'){ errors.push({target_char:'', recognized_char:op.b, result:'insertion'}); continue; }
+      const ch=op.a;
+      if(!map.has(ch)) map.set(ch,{target_char:ch,total:0,correct:0,substitution:0,deletion:0});
+      const x=map.get(ch); x.total++;
+      if(op.type==='EQ') x.correct++;
+      else if(op.type==='SUB'){ x.substitution++; errors.push({target_char:op.a,recognized_char:op.b,result:'substitution'}); }
+      else if(op.type==='DEL'){ x.deletion++; errors.push({target_char:op.a,recognized_char:'',result:'deletion'}); }
+    }
+    return { char_stats:Array.from(map.values()).sort((a,b)=>a.target_char.localeCompare(b.target_char,'zh-Hant')), char_errors:errors, error_count:errors.length, target_length:normalize(targetRaw).length };
+  }
+
+  const lessons = {
+  "1": [
+    "我們一起走到公園裡散步。",
+    "那位路人熱心地告訴我們便利商店在哪裡。",
+    "你需要我幫忙拿行李嗎？",
+    "請問你知道學校在哪裡嗎?我迷路了。",
+    "下一個路口左轉，餐廳就到了。",
+    "這個路口的車子很多，你得小心。",
+    "郵局在中山路四段三十號。",
+    "咖啡店不太遠，你過了紅綠燈再右轉就到了。",
+    "公園在第幾個路口？",
+    "一定要等紅綠燈變綠再過馬路才安全。",
+    "請你告訴我最近的飲料店在哪裡。",
+    "我想提錢，可是這附近沒有提款機。",
+    "下課後，我們常常去超商買零食。",
+    "他應該已經下課了，怎麼還沒回家？",
+    "她把信帶到郵局寄了。",
+    "他想提十萬塊錢付學費，所以得去銀行。",
+    "那邊的風景非常漂亮。",
+    "師大的學生畢業以後都想當老師嗎?",
+    "和平東路上有一家很有名的小吃店。",
+    "從這裡往前走，差不多三分鐘就到捷運站了。",
+    "在咖啡店門口右轉，就會看到一座公園。",
+    "火車站聽起來不太遠，我們走路去吧。",
+    "我在路上看見小美跟一個男生在聊天。",
+    "我正在下載最新的遊戲。",
+    "爬山前別忘了下載離線地圖。",
+    "這支手機有一點貴，可是非常好用。",
+    "他穿著一件紅色的外套。",
+    "我能在超商買日用品嗎?",
+    "我經過那家新開的書店的時候，看到了我的老師。",
+    "那間咖啡廳在一條小小的巷子裡。",
+    "上完一整天的課，我快餓死了。",
+    "他一邊聽音樂，一邊做作業。",
+    "我今天才發現走這條路也可以到學校。",
+    "火車站離學校只要五分鐘，不太遠。",
+    "她的背包很大，可以裝很多東西。",
+    "我正好帶了兩枝筆，借你一枝。",
+    "她逛了很久的書店，最後買了十本書回家。",
+    "她的桌上放著三枝筆。",
+    "他的筆掉到地上了。",
+    "我在圖書館借了三本小說回家看。",
+    "我要在新的本子上寫今天的筆記。",
+    "捷運站出來左轉，你會看到一棟白色的大樓。",
+    "在師大路上有很多漂亮的餐廳。",
+    "我常常去那家麵店吃牛肉麵。"
+  ],
+  "2": [
+    "公車太慢了，我們還是搭捷運吧!",
+    "這家店很有名，常常很多人在門口排隊。",
+    "我們約好下午三點在出口見面。",
+    "餐廳就在捷運站對面，很好找。",
+    "你可以直接從學校坐公車到火車站。",
+    "如果有悠遊卡就不必在捷運站買票。",
+    "你得搭捷運綠線去那個捷運站，再換紅線。",
+    "我想去中壢，請問車站在哪裡?",
+    "從我的家到學校要換三次公車，真是太麻煩了。",
+    "捷運要關門了，我們趕快上車吧！",
+    "我已經在這裡等了三十分鐘的公車了。",
+    "我要去台北火車站，請問我應該在哪裡轉車?",
+    "下車前記得也要刷悠遊卡。",
+    "上車的時候你可以問問司機這班公車到大學嗎?",
+    "站牌上有公車時間嗎?",
+    "你走左邊的樓梯上去三樓，左轉第二間就是你的教室。",
+    "這棟大樓有兩部電梯，很方便。",
+    "手扶梯旁邊有一家超商，你可以在那邊買悠遊卡。",
+    "這部售票機壞了，我不能買票。",
+    "想買去台中的車票請到三號售票口排隊。",
+    "往左走就是1號出口了。",
+    "前面那家麵店的湯麵很好吃。",
+    "公車站旁邊有一家便利商店。",
+    "前面路口轉彎，就到我家了。",
+    "這個紅綠燈的時間很長，你慢慢走。",
+    "到紅綠燈處左轉，就看到圖書館了。",
+    "這個紅燈不能右轉，你要小心。",
+    "我在這邊應該要直走還是右轉呢?",
+    "請依照指示標誌前往登機門。",
+    "要怎麼查去機場的路線?",
+    "你有學校的地圖嗎?我想去圖書館。",
+    "你可以在網站上查詢班次時間。",
+    "請大家打開手機看看公告。",
+    "上飛機應該要關掉手機才安全。",
+    "不好意思，請問最近的洗手間在哪裡？",
+    "我不會說中文，不知道怎麼問路。",
+    "孩子很喜歡幫忙父母做家事",
+    "我們搭船到綠島，風景很美。",
+    "從台灣搭飛機到日本大約需要三個小時。",
+    "今天不上課，我可以慢慢地吃早餐。",
+    "美美帶我去學校，我很謝謝她。",
+    "我暑假要去法國學習法語。",
+    "義大利在歐洲南部。",
+    "用悠遊卡搭火車很方便。",
+    "綠島的風景很美，我拍了很多照片。",
+    "我們飯店在台北的東南邊。",
+    "出發前請好好地檢查行李。"
+  ],
+  "3": [
+    "他的中文進步很快。",
+    "你今天真早，有考試嗎?",
+    "我上個星期的考試考得真差。",
+    "我已經開始準備期末報告了。",
+    "她下個月要考中文考試。",
+    "我們的中文課每個星期都要考聽寫。",
+    "學習中文對我來說不容易。",
+    "我小學的時候跟父母去過美國。",
+    "漢字的筆畫很有趣。",
+    "她在高中的時候是學生會會長，很有名。",
+    "我去年去過上海。",
+    "他才學一個星期，就能自己去餐廳點餐了。",
+    "她說話說得太快了，我聽不懂。",
+    "我喜歡去夜市買東西，可以一邊逛街一邊練習中文。",
+    "他來台灣三年了，他的中文非常流利。",
+    "雖然天氣很冷，我還是跟他一起去爬山。",
+    "現在地球的環境改變很大，天氣越來越熱了。",
+    "因為媽媽不同意，所以我們只能取消計畫。",
+    "他每天都看報紙，了解最新的新聞。",
+    "他不喜歡吃米飯，他喜歡吃麵包。",
+    "今天是一位企業家的演講，他說他家很窮，得比別人更努力才能成功。",
+    "噢!這不是我的手機!我的手機呢?",
+    "他跟同學常常去學生活動中心參加學校的活動。",
+    "我剛剛才想起來明天有考試，可是我已經想睡覺了。",
+    "今天考試的第三題你選什麼答案?",
+    "今晚有很多作業要做，所以我們早一點回家吧。",
+    "你要一起去咖啡店練習中文嗎?",
+    "她常常半夜還在讀書。",
+    "聽到我得到獎學金的好消息，媽媽很高興。",
+    "我平常喜歡看書和畫畫。",
+    "假日我常常和朋友去爬山。",
+    "我們一起去參加社團吧!我想認識更多同學。",
+    "我們很久不見了，這個週末一起去咖啡店聊天，非常開心。",
+    "寫書法是一個有趣的文化活動，你要一起去參加嗎?",
+    "街上到處都是廣告招牌，我覺得看起來很亂。",
+    "今天學校請了一位超商的老闆來演講，我覺得很有意思。",
+    "我想更了解台灣文化，所以放假的時候常常去旅行。",
+    "你習慣了在台灣的生活嗎?",
+    "我們學校在台北，離陽明山很近，風景很漂亮。",
+    "在台灣的外國人很多，所以小吃店常常有英文的菜單。",
+    "這個夜市有一些有名的小吃，你想試試看嗎?"
+  ],
+ "4": [
+    "高美玲決定這個學期要在學校教英文。",
+    "他寒假想在咖啡店打工賺學費，也可以順便練習中文。",
+    "他們系的主任很關心學生，常常跟學生聊天。",
+    "張老師在課堂上介紹了這個學期要學的內容。",
+    "我今年二十二歲，大學剛畢業，打算先留在台灣找工作。",
+    "他對語言學特別感興趣，所以想要繼續念研究所。",
+    "這份實習工作讓我獲得了很多經驗，我覺得對以後找工作非常有幫助。",
+    "我們在午餐時談了未來的學習計畫。",
+    "畢業後，我希望能回國當中文老師。",
+    "她是中文課的助教，負責幫老師改作業跟幫學生練習中文。",
+    "今天的會議安排在上午九點到十一點。",
+    "這門課不太容易，除了參加實習，還要準備期末的口頭報告。",
+    "我們系的三年級學生已經開始做畢業專題了。",
+    "暑假我打算去國外當交換生，因為畢業以後我想出國唸研究所。",
+    "遇到不懂的問題時，應該趕快去請教老師。",
+    "請問貴公司什麼時候舉辦徵才活動?",
+    "這家公司的薪水不太高，但是福利不錯，一年還有一張回國的機票。",
+    "你去參加面試的時候，應該要問這個工作的薪水怎麼算?",
+    "按照課表，你今天得上八個小時的課",
+    "他的太太是一位大學教授，在大學教微積分",
+    "在學校打工的鐘點費不高，但是環境比較安全。",
+    "他有三份工作，所以每天回來都很累。",
+    "他不會說法文，可以去法國旅行嗎?",
+    "亞洲人都是黑色的頭髮嗎?",
+    "他在大學主修西班牙語跟日語。",
+    "今天我的朋友說他要去參加英文演講比賽，拜託我跟他一起練習。",
+    "他今年已經三年級了，所以在學校裡不會迷路的。",
+    "按照台灣的法律，外國人可以在台灣打工嗎?",
+    "他覺得一份雞排不太夠，所以又點了一份小籠包。",
+    "這家公司說要參加應徵的人應該在星期五以前交履歷表。",
+    "我的老闆要找我面談，了解這個工作適不適合我。",
+    "他是一個華僑，在外國出生長大，不太會說中文。",
+    "老師要我去他的辦公室拿今天的考卷來教室。",
+    "我昨天看到你跟老闆在會議室談話。",
+    "我想去你們公司應徵，你可以跟我說說公司的情形嗎?",
+    "這件衣服不太適合我，我想換別的款式",
+    "請你跟你的同學說明今天的功課。",
+    "我打算先去日本旅行一年，然後申請日本的學生簽證，在日本念研究所",
+    "老闆說月底會發薪水，我很期待。",
+    "什麼時候發薪水呢?我想跟朋友一起去墾丁旅行。",
+    "他的電腦壞了，所以拿到獎學金就馬上去買了新的電腦。",
+    "最近我沒什麼事，所以答應朋友去幫她搬家。",
+    "他覺得面試很順利，應該可以應徵上這個工作。",
+    "他的老闆姓黃，是一位美國的華僑。",
+    "我沒想到這門課被當了，我覺得很難過。"
+  ],
+  "5": [
+    "我們今天去參加一場好朋友的喜酒。",
+    "恭喜你得到獎學金了！",
+    "美麗的新娘穿著白色的禮服走進教堂。",
+    "許多人都來參加他們的婚禮。",
+    "他的婚禮布置得非常浪漫，真讓人羨慕。",
+    "新郎穿著黑色西裝，看起來非常帥。",
+    "面試十分正式，不但要準備履歷表，還要注意不能穿牛仔褲參加。",
+    "參加婚禮的客人們在大門前跟新郎新娘一起拍照。",
+    "新娘穿著白色的禮服，手裡拿著一束美麗的花。",
+    "新郎新娘要進來了，請大家準備好你的照相機。",
+    "新郎牽著新娘的手走進婚禮，看起來非常幸福。",
+    "他傳訊息跟我說他站在教堂最後面，你看見他了嗎?",
+    "新娘的禮服是白色的，非常優雅，是今天最美麗的主角。",
+    "新郎看起來很帥，也很緊張。",
+    "她的禮服上繡滿了精緻的花，看起來非常適合她。",
+    "我請伴娘們帶你去新娘同學的座位。",
+    "這件衣服看起來不像新的，應該是她的媽媽給她的。",
+    "我最好的朋友有一個交往五年的男朋友，但是他們不打算結婚。",
+    "台灣人覺得不管是搬家還是結婚，都應該要選一個好日子",
+    "她的媽媽有五個兄弟姊妹，所以有很多親戚來參加婚禮。",
+    "他覺得台灣的傳統市場很熱鬧，老闆都非常熱情。",
+    "今天是你的女朋友生日，你們打算怎麼慶祝?",
+    "我要告訴你一件事，我明年要出國工作了。",
+    "她要結婚讓他們父母非常高興，一直說是今年最大的喜事。",
+    "她平常很小氣，今天為什麼說要請客?",
+    "參加婚禮的客人都帶了紅包要給新人",
+    "婚禮結束以後，新人會站在門口拿著糖果送客。",
+    "這場婚禮的新人準備了很多小禮物，讓孩子都非常開心",
+    "我好幾個朋友最近都要結婚，今年我已經參加了三場喜宴。",
+    "新人會跟父母一起到桌邊給客人敬酒，謝謝他們來參加喜宴",
+    "大人們在一旁舉杯說祝福新人的話。",
+    "小孩不喜歡跟父母去參加喜宴，因為不太好玩。",
+    "新郎的演講讓大家都感動得不得了。",
+    "今天的新人準備了很多禮物，另外，還準備了驚喜表演。",
+    "她的孩子喜歡去爺爺家玩，因為桌上常常放了各種糖果和甜點。",
+    "你離開以前一定要告訴我，我想請你吃飯。",
+    "她剛剛說了一句晚上不回來吃飯，就去上班了。",
+    "台灣人覺得送紅包給新人，是一種祝福。",
+    "新郎說的話讓大家非常感動。",
+    "我覺得不太舒服，我想休息一會兒。",
+    "她的婚禮氣氛很熱鬧，大家有說有笑。",
+    "宴會上賓客有吃有喝，氣氛愉快。",
+    "大家為新人送上百年好合的祝福。",
+    "賓客們都祝新人早生貴子。"
+  ],
+  "6": [
+    "李東健是我的韓國同學，也是我的室友。",
+    "我下個月要搬到新家。",
+    "我喜歡週末跟朋友去河邊騎腳踏車。",
+    "這個公園非常大，我跟家人晚上常常一起去散步運動。",
+    "我最近常常去河邊騎腳踏車運動。",
+    "他正在做功課，你明天再來找他玩吧!",
+    "這個網站有很多有用的資料。",
+    "我最近很忙，因為我需要準備應徵的資料。",
+    "搬家是一件很累的事，所以我很討厭搬家。",
+    "我家離學校很近，騎腳踏車五分鐘就到了。",
+    "你要簽租房子的合約以前，要注意上面寫的事情。",
+    "我的手機合約下個月到期，我想換一家電信公司。",
+    "下了一個禮拜的雨我真擔心，還好今天的運動會沒有下雨。",
+    "這間房間的光線很好，看起來很舒服。",
+    "如果要在台灣工作，學習中文就很重要。",
+    "如果明天下雨，我就不去公園了。",
+    "這件衣服太小了，我要買別的尺寸。",
+    "我想去跑步運動，所以這雙鞋子很合適。",
+    "今年參加比賽的學生比較少，你知道為什麼嗎?",
+    "今天的課很有意思，你生病了不能去，真可惜。",
+    "謝謝你幫我買書，請把書放在桌子上就好了。",
+    "這條馬路兩邊都有商店，我們有空就可以去逛逛。",
+    "我願意去這家公司工作是因為老闆是我的大學室友。",
+    "請你幫我開一下電腦，我等一下要查搬家的資料。",
+    "我把錢存在銀行裡。",
+    "我用隨身碟存重要的資料。",
+    "你喜歡什麼樣的音樂？",
+    "學語言要慢慢來，不要著急。",
+    "時間還很多，我們不急。",
+    "這本書相當有趣，你想看看嗎?",
+    "我家離公司不太遠，每天騎自行車上班。",
+    "我的床很舒服，上面還放了很多我喜歡的娃娃。",
+    "桌子上有很多書，你可以拿來看看。",
+    "這張椅子坐起來很舒服，而且看起來很適合你的新家。",
+    "我最近搬家了，所以需要買一些新家具。",
+    "他很聰明，而且很努力。",
+    "隔壁太吵了，我睡不著。",
+    "在台北生活費比較高，所以他想搬到花蓮去。",
+    "今天的溫度很低，記得多穿一點衣服。",
+    "今天太冷了，我要留在家裡看書。",
+    "這條河很長，可以說是這個國家的代表。",
+    "你為什麼今天沒有來上課?我們需要討論這個問題。",
+    "我參加了學校的音樂社團，希望認識很多喜歡音樂的朋友。",
+    "學校有很多有趣的活動，我們一起去報名參加吧!",
+    "考試成績不好，我很失望。",
+    "別擔心，我會幫你準備搬家的，你可以放心去上班。",
+    "現在的人不但用手機打電話，也用手機上網。",
+    "首爾是韓國的首都，非常熱鬧。"
+  ],
+  "7": [
+    "請把垃圾丟進垃圾桶。",
+    "他把水倒進杯子裡。",
+    "請把垃圾帶回家，不要亂丟垃圾。",
+    "我的房間很亂，媽媽叫我收拾房間。",
+    "已經十點半了，我以為你今天不會來上課了。",
+    "這些瓶子洗乾淨可以回收。",
+    "在學校要遵守很多規定，不但不可以抽菸，也不可以喝酒。",
+    "快點走，要不然今天上課會遲到的。",
+    "我的皮包放在桌子上，怎麼不見了?",
+    "我每天早上去公園跑步，心情非常好。",
+    "我在公園看到有一隻小狗在追貓咪。",
+    "這本書很有趣，可是被借走了。",
+    "這家餐廳還不壞，我們下次再來試試別的菜吧。",
+    "我很懶，還好他天天都來找我一起去圖書館看書。",
+    "請把汽水罐放進回收桶。",
+    "咖啡店用紙杯裝咖啡，如果自己帶杯子去可以便宜五塊錢。",
+    "請放下手中的筆，停止作答。",
+    "我以為家裡沒有人，所以哥哥從房間走出來的時候我嚇了一跳。",
+    "下雨了，我們沒帶傘，怎麼辦？",
+    "我們去咖啡店坐下來聊聊天吧。",
+    "剛剛天氣還很好，怎麼忽然下起雨來了?",
+    "我聽到奇怪的聲音，我們一起出去看看吧!",
+    "今天的天氣很奇怪，一下下雨一下出太陽。",
+    "超商的店員說買袋子要加兩塊錢。",
+    "他有很多輛車，我看過他開黑色的車子，也看過紅色的。",
+    "今天的雲很高，明天一定會是好天氣。",
+    "我們約在什麼地點見面？",
+    "為了環保，我們要好好地做資源回收。",
+    "我們要保護地球，也是保護未來的生活。",
+    "垃圾要分類處理，不可以都丟在一起。",
+    "我們要利用資源，也要保護資源。",
+    "請你拿一張紙給我，我要寫他的名字和學號。",
+    "桌上有一個玻璃瓶子，你可以把花放在裡面。",
+    "這個袋子是塑膠做的，可以多用幾次。",
+    "水是很重要的資源，不可以浪費。",
+    "請把資源垃圾丟進回收桶。",
+    "台北是台灣最大的城市，生活費也是最高的地方。",
+    "我聽見有人在叫我的名字，你聽見了嗎?",
+    "我叫了計程車，司機正從對面開過來。",
+    "那是我的高中同學，很久沒見面了，我走過去跟他說話。",
+    "在高鐵上有打掃的人員推著推車，請大家把垃圾丟進去。",
+    "這條路上有很多車子，你要小心。"
+  ],
+  "8": [
+    "他的功夫老師很厲害，參加很多比賽。",
+    "媽媽叫我去吃飯。",
+    "我見過那個人，他是一個在超商工作的店員。",
+    "我拿很多東西，請幫我推開這扇門，謝謝。",
+    "體育館裡有很多人在運動，打籃球、網球什麼的。",
+    "爺爺每天早上去公園打太極拳，有一些年輕人會跟他請教。",
+    "我的太極拳師父很有經驗，一眼就知道我哪裡做得不好。",
+    "她很有音樂天分，可惜沒有錢上音樂學院。",
+    "我不懂這個問題的意思，老師可以再說一次嗎?",
+    "他慢慢地站起來，走到教室外面去。",
+    "這個動作很難學，我練習了很多次，還是做不到。",
+    "這個包包很輕，我可以裝很多東西。",
+    "昨天跟我的家人去爬山，今天我的腿很痠。",
+    "台灣的水果又便宜又好吃，所以我吃了很多水果。",
+    "你的吉他彈得真好，請繼續練下去。",
+    "我對音樂很有興趣，未來想去英國念音樂學院。",
+    "我想借一本書來學習怎麼打太極拳。",
+    "他很有天分，學什麼都很快。",
+    "我找了很多老師，暑假也一直在練習，終於學會了游泳。",
+    "他生病了，今天起不來，你能告訴老師嗎?",
+    "你要好好照顧自己，腿受傷了就走不了路。",
+    "運動對身體有好處，所以應該每天都去運動一下。",
+    "他總是抱怨工作太累，薪水太低，所以不想去上班。",
+    "這座山高一千公尺，去爬山的時候我應該帶什麼東西呢?。",
+    "他的家到學校要換三次公車，所以總是遲到。",
+    "作業寫完了，我們去看電影吧!",
+    "他常常很累，我建議他去跑步，可以增加體力。",
+    "他整天都在看電視，什麼家事都不做。",
+    "他今天精神很好，一早就去圖書館讀書了。",
+    "我本來想去旅行，可是颱風來了，哪裡都不能去。",
+    "明天可能會下雨，你要記得帶雨傘。",
+    "我先回家了，你是最後離開的人，要記得關燈喔。",
+    "睡眠不足的影響很大，頭髮會變少，也會容易覺得累。",
+    "運動對身體很好，我們明天下課一起去健身房運動吧!",
+    "我從小學開始學鋼琴到國中三年級，差不多是每天晚上都要練鋼琴。",
+    "我忽然想起媽媽要我買日用品回家，你可以等我一下嗎?"
+  ],
+  "9": [
+    "台灣的春假有七天，我們要去旅行。",
+    "今天天氣很好，我們去公園散步吧。",
+    "我到台北了，你可以來捷運站接我嗎?",
+    "我很喜歡去台南旅行，這個地方很有台灣的特色。",
+    "我的錢不夠，不能買這個東西。",
+    "這朵花的顏色很美，我想拍下來。",
+    "我們新年會跟家人去廟裡拜拜。",
+    "他常常照顧我，像我的哥哥一樣。",
+    "這座教堂很漂亮，是十七世紀的建築。",
+    "我住在台灣南部，天氣非常熱。",
+    "我喜歡在海邊潛水，所以我的朋友說我一定要去綠島。",
+    "我喜歡旅行，因為各個國家都有不同的文化。",
+    "我想去綠島玩，聽說綠島附近的海很美，而且海裡有很多魚。",
+    "檸檬的味道很酸，可以用來做泰國菜。",
+    "我買了一袋檸檬，我的車子裡都是檸檬的香味。",
+    "這個菜的味道很好，很適合台灣人。",
+    "我想去泰國旅行，聽說泰國有很多好吃的小吃。",
+    "跟我的手機比起來，這支手機比較便宜。",
+    "這個蛋糕好吃極了，我想多買一個帶回家。",
+    "這次旅行去了很多漂亮的地方，讓我忘不了。",
+    "我的祖父母住在鄉下，有時候也會搭公車去市區買東西。",
+    "這裡的氣氛很浪漫，我以後一定要帶我的男朋友一起來。",
+    "這是一個小鎮，大部分的人都在附近的工廠工作。",
+    "每個人喜歡的東西都不同，有的人喜歡運動，有的人喜歡聽音樂。",
+    "這是一棟現代建築，有冷氣、網路，非常舒服。",
+    "我住在公寓裡，常常聽到鄰居一邊洗澡一邊唱歌的聲音。",
+    "這條馬路很長，你要去的地方在哪一段?",
+    "這條河很寬，開船到對面去要三十分鐘。",
+    "路上有很多汽車，過馬路要小心。",
+    "這座建築很有名，是一百年前的人蓋的。",
+    "這棵樹很老了，附近的學校常常帶學生來參觀。",
+    "這棟大樓有二十層，每一層都有一個特別的動物裝飾。",
+    "我住在台灣北部，一個叫做桃園的城市。",
+    "台灣人很熱情，拿我的朋友來說，他常常就邀請我去他的家吃飯。",
+    "公車裡很擠，你要小心你的包包。",
+    "台灣人很喜歡喝飲料，像是茶、果汁、咖啡什麼的。",
+    "巴黎是法國的首都，聽說是一個很美的城市。",
+    "高雄市在台灣南部，旁邊有港口，是台灣第二大的城市。",
+    "台南在台灣中南部，有很多傳統的小吃店，是台灣最古老的城市。",
+    "這個東西太貴了，我買不起。",
+    "百貨公司裡有很多商店，我們可以去找找你喜歡的鞋子。",
+    "物價越來越高，所以越來越多人不想結婚也不想生孩子。"
+  ],
+  "10": [
+    "馬丁是我的外國朋友，他是英國人，來台灣三年了。",
+    "我用報紙包裝禮物，讓我的朋友嚇一跳。",
+    "媽媽會包餃子，所以我打算暑假回家跟媽媽學。",
+    "台灣和日本的文化都是進房間要脫鞋子。",
+    "這雙鞋太小了，可以給我大一點的嗎?",
+    "最後一個離開教室的人請關電燈。",
+    "你出門要記得關門，貓咪才不會跑出去。",
+    "我很喜歡吃春捲，台灣的春捲、越南的春捲都喜歡。",
+    "韓式泡菜很好吃，而且每個韓國家庭做的口味都不一樣。",
+    "爸爸把飯做好了，我們去飯廳吃飯吧!",
+    "我們要開始考試了，請把書放下。",
+    "要吃飯了，你們快去洗手吧!",
+    "媽媽正在廚房做菜，你可以跟她學做菜的方法。",
+    "我最喜歡吃水餃，附近的水餃店老闆都認識我。",
+    "你等一下，水開了才可以煮麵。",
+    "這台電視壞了，我要打電話請垃圾車來收。",
+    "我的杯子破了，我得買一個新的。",
+    "你做的餃子真好吃，餃子的餡兒很香。",
+    "我好餓，我的肚子都扁了。",
+    "做菜需要準備很多材料，去小吃店吃飯還比較便宜。",
+    "這道菜很好吃，你用了什麼材料?",
+    "我已經吃飽了，先去教室準備上課，你們慢慢吃。",
+    "他很喜歡這家餐廳的菜，不管點什麼都會吃光。",
+    "那個鍋子太小了，你用這個鍋子煮湯吧。",
+    "我的外國朋友不會用筷子吃飯，他習慣用叉子。",
+    "我們想分著吃，請多給我一個碗，謝謝。",
+    "我想去韓國旅行，你知道什麼季節去最好嗎?",
+    "他看起來很年輕，看不出來他的孩子已經上大學了。",
+    "台灣人吃水餃的時候常常配酸辣湯。",
+    "這個學期很忙，我沒有時間去運動，越來越胖了。",
+    "趁現在有時間，我們出去走走吧!",
+    "我很喜歡這種檸檬，因為不但皮很薄，還有很多汁。",
+    "你能幫我嚐嚐這道菜的口味嗎?我想知道適不適合給孩子吃。",
+    "最近的大白菜很便宜，所以很多人買來做泡菜。",
+    "我忘了在湯裡加一點鹽，現在什麼味道都沒有。",
+    "你可以幫我把這些蔬菜拌一拌嗎?。",
+    "我不敢吃辣椒，所以不跟你們去吃麻辣鍋了。",
+    "這個調味料加一點就很香，別加太多了。",
+    "你把水果裝在盒子裡帶去學校當點心吃吧。",
+    "這是一個小小的玻璃杯，很多人用它喝酒。",
+    "我喜歡吃日本壽司，可是在我的國家賣壽司的餐廳不太多。",
+    "我覺得台灣的飯糰跟日本的壽司不一樣，但是我朋友覺得很像。",
+    "你去過那麼多國家旅行，你最喜歡哪一國的食物?",
+    "這道菜我不會做，因為看起來很簡單，可是做起來不容易。"
+  ],
+  "11": [
+    "其他的景點我們明天再去參觀，今天先好好休息。",
+    "暑假是學生們最期待的假期，可以好好放鬆一下。",
+    "北投的溫泉很有名，泡完皮膚會變得很光滑。",
+    "老師建議我們多跟台灣人練習口語，中文會進步得更快。",
+    "這場電影票賣完了，我們只好看下一場的。",
+    "謝謝你，我會好好考慮你的建議。",
+    "去銀行的時候，我順便去超商買了一些日用品。",
+    "這座湖的湖水很乾淨，還可以看到裡面的小魚。",
+    "台灣的原住民文化跟南方的國家有很大的關係，非常有意思。",
+    "這趟在歐洲的旅行花了很多錢，但是收穫很豐富。",
+    "今天她遲到的時候老闆很生氣，後來才知道她生病了。",
+    "台灣的孩子都知道去爬山要特別注意天氣。",
+    "她傍晚在沙灘上散步，覺得特別放鬆。",
+    "你旅行的時候一定要把錢包放好，才不會不見。",
+    "我的手機不見了，找了很久才在沙發下找到。",
+    "你看到了嗎?剛剛小偷被警察抓走了。",
+    "我的腳踏車昨晚被偷了，今天只能搭公車上班。",
+    "這個小鎮很安全，晚上出門散步也不用擔心。",
+    "聽說太魯閣的風景很美，真的值得坐三個小時的火車去看。",
+    "墾丁的海灘很美，是台灣南部最有名的景點。",
+    "台中的逢甲夜市很熱鬧，有很多好吃的小吃。",
+    "日月潭在南投山上，四周都是山，在湖邊散步非常舒服。",
+    "夏天到墾丁玩水上活動是最受學生歡迎的度假方式。",
+    "阿里山是台灣最有名的風景區之一，每年都有很多遊客去看日出。",
+    "這家餐廳的料理又好吃又便宜，所以排隊的人一直都很多。",
+    "這首歌我聽了好幾遍，還是覺得很好聽。",
+    "山上的民宿環境很不錯，打開窗戶就可以看到很美的風景。",
+    "我訂到這家熱門的民宿，運氣真是太好了。",
+    "在台灣騎摩托車很方便，可是有時候不太安全。",
+    "台灣在熱帶，冬天也不會太冷。",
+    "醫生建議我多看看綠色的植物，對眼睛有好處。",
+    "所有參加活動的同學都玩得很開心。",
+    "我白天要上課，晚上還要打工賺生活費。",
+    "太累了，我想躺在床上好好休息一下。",
+    "黃昏的時候走在海邊看著夕陽很浪漫。",
+    "那家有名的咖啡店在一條很小的巷子裡，很不容易找。",
+    "這條老街還有很多傳統建築，走在裡面好像回到一百年前。",
+    "我不太會喝酒，一杯啤酒就醉了。",
+    "請上二樓，主任在辦公室等你。",
+    "我夏天去墾丁度假了，那裡真是又美麗又浪漫。",
+    "離開家鄉到外國讀書，我很想念我的家人。",
+    "一到了夏天，墾丁就擠滿了觀光客。",
+    "她的貓有時候會在院子裡曬太陽。",
+    "他第一次玩水上摩托車，覺得很有趣。",
+    "美美不知道，第一次見面的時候安同就愛上她了。"
+  ],
+  "12": [
+    "這家新開的餐廳生意很好。",
+    "今天颱風天，只有超商還開著。",
+    "我的朋友因為健康原因開始吃素食。",
+    "現代人工作忙碌，常常吃速食。",
+    "我點錯菜了，服務員很快幫我換了。",
+    "你知道螞蟻上樹其實是一道豬肉做的菜嗎?",
+    "欸，你有看到我的手機嗎？",
+    "媽媽讓我跟朋友去墾丁旅行。",
+    "她因為宗教的原因，吃素很多年了。",
+    "這個漢堡是新的產品嗎?",
+    "他最近吃太多甜點變胖了。",
+    "她的貓看起來胖胖的，可是可以跳得很高",
+    "我今天不想吃肉，我想吃素菜。",
+    "這道菜太油膩了，我吃不下。",
+    "我們一共有五個人，應該要點幾樣菜?",
+    "小朋友對新的東西總是很好奇。",
+    "那個女孩唱歌很好聽。",
+    "多吃青菜對身體有好處。",
+    "她最近在減肥，想要再瘦一點。",
+    "我的室友很愛乾淨，天天打掃房間。",  
+    "這家餐廳的麻辣火鍋很有名，你要吃豬肉還是牛肉?",
+    "西方文化和東方文化有很多不同。",
+    "我完全不知道這件事，謝謝你告訴我。",
+    "這碗湯太鹹了，需要加點水。",
+    "吃太多炸的食物不健康。",
+    "週末我們去海邊玩，一邊聊天一邊烤肉，真輕鬆。",
+    "夏天吃沙拉不油膩，很清爽。",
+    "麥當勞是世界知名的速食品牌。",
+    "這條街上有很多速食店。",
+    "只要你努力，就能成功。",
+    "我最討厭下雨天了，衣服鞋子都會濕濕的。",
+    "他每天只吃一餐，朋友都很擔心他的健康。",
+    "每個人都有宗教的自由，你不要管他。",
+    "運動和健康很有關係，為了健康你應該多運動。",
+    "小朋友都喜歡吃薯條跟漢堡。",
+    "這道菜的作法很簡單，你回去可以做做看。",
+    "這個問題越想越複雜，你還是別想了吧!",
+    "我覺得越簡單的生活越快樂。",
+    "蒸的菜很健康，所以我常常自己做。",
+    "有機食品雖然貴一點，但比較健康。",
+    "魚、肉、蛋、菜都是健康食品",
+    "保護地球環境是每一個人的責任。",
+    "亂丟垃圾會造成環境汙染。",
+    "這個地方的工廠太多了，空氣汙染很嚴重。",
+    "選餐廳要注意食品的衛生。",
+    "均衡的營養對孩子很重要，不可以只吃薯條、漢堡。",
+    "要開學了，他去文具店買了筆、橡皮擦什麼的。"
+  ],
+  "13": [
+    "林愛麗是我的好朋友，我們常常一起去圖書館學習。",
+    "小心別讓手機掉到地上，螢幕可能會破掉。",
+    "他總是低頭看手機，完全不注意周圍的人。",
+    "前面的同學請把考卷傳給後面的同學。",
+    "你傳過簡訊給老師嗎?要注意什麼?",
+    "這一則簡訊是我朋友生日，邀請我們去她家吃蛋糕。",
+    "這支手機沒有什麼新功能，為什麼那麼貴?",
+    "老師很生氣，因為他昨天沒來考試。",
+    "媽媽在廚房叫我過去幫忙準備晚飯。",
+    "昨天我的女朋友罵我，因為我忘了她的生日。",
+    "我每天下班後都會去健身房運動一小時。",
+    "公車快來了，我先走啦。",
+    "我需要查一下明天的課表，再告訴你我能不能去看電影。",
+    "他打算搭今天八點的班機回國，所以很早就起床了。",
+    "這家餐廳很熱門，你一定要先打電話訂位。",
+    "停電了，我的電腦、電視都不能用了。",
+    "手機不是壞了，是沒電了，你趕快充電就能用了。",
+    "她很糊塗，常常忘記帶鑰匙出門。",
+    "這道菜真的很好吃喔，你一定要試試看。",
+    "我去年夏天到義大利旅行，看了很多古蹟。",
+    "這不是你的，請不要拿走別人的東西。",
+    "我在公園撿到一個錢包，應該要交給警察。",
+    "他回國以後，留下很多家具給我。",
+    "現在大家都習慣用網路購物和學習。",
+    "昨天晚上外面有很奇怪的聲音，我很害怕。",
+    "她被當了，她的媽媽知道這件事情以後很生氣。",
+    "我得到獎學金了，我馬上打電話告訴媽媽這個好消息。",
+    "現代的人常常透過網路知道世界上的新聞。",
+    "世界各地的文化都有它的特色，這是旅行最有趣的地方。",
+    "搭公車可以節省很多交通費。",
+    "為了健康，我每天早上六點起床去晨跑。",
+    "出門前要記得檢查門窗是不是鎖好了。",
+    "我每天都會檢查郵件，看看有沒有重要的消息。",
+    "他的老闆很生氣，要他立刻說明為什麼遲到。",
+    "我要把這些旅行的照片上傳到社群網站。",
+    "他已經習慣用網路了，覺得跟室友在房間用簡訊聊天很正常。",
+    "我們今天有空，可以坐下來好好談一談打掃宿舍的問題。",
+    "現代人的生活步調都很快，壓力也很大。",
+    "台灣的水果都很好吃，比方說，芒果、香蕉我都很喜歡。",
+    "別放棄，只要努力練習，一定可以做到的。",
+    "記者總是想要獲得第一手的新聞資訊。",
+    "火車快來了，他急著去火車站，沒有時間跟你打招呼。",
+    "見面時要先打招呼，這是很重要的禮貌。",
+    "現在很多人習慣用網路聯絡，很少面對面交談。"
+  ],
+  "14": [
+    "將來我希望能夠成為一名老師，幫助更多學生學習。",
+    "這家公司正在徵求有經驗的設計師，你有興趣嗎?",
+    "他是一位教英文的教師，已經有十年的教學經驗了。",
+    "我認為學習語言最重要的是要多練習口說。",
+    "他從大學畢業後，決定先留在台灣工作幾年再回國。",
+    "台灣的科技業發展得非常迅速，吸引許多外國人來台灣工作。",
+    "他不但會說中文，連英文和日文都很流利。",
+    "每個人的想法都不一樣，有的人想回國工作，有的人想出國讀書。",
+    "她不但成績很好，還常常熱心幫助同學。",
+    "大學畢業後我想繼續念研究所，學習更多的知識。",
+    "現在大部分的學生都習慣使用電腦來完成作業。",
+    "透過努力學習，他終於實現了出國留學的夢想。",
+    "今年生意很好，所以老闆招待所有員工去高級餐廳吃飯。",
+    "畢業以後他想考研究所，但是他的父母希望他早一點開始工作。",
+    "每年春節全家人都會聚在一起吃年夜飯，聊聊這一年的生活。",
+    "香港是一個國際化的城市，有很多人會說英文、中文什麼的。",
+    "上海是中國最熱鬧的城市之一，有很多大公司。",
+    "說到學習中文，我覺得最困難的部分是聲調。",
+    "念完高中後，他決定到美國讀大學。",
+    "這家美國的公司在台灣設立了一家分公司，最近正在徵求員工。",
+    "畢業的時候，大家都很捨不得相處四年的同學。",
+    "老同學們決定每年都要聚一聚，像大學的時候一樣。",
+    "我以前來過一次台灣，當時我還是小學生，什麼中文都不懂。",
+    "中文的聲調對外國學生來說常常是最難的部分。",
+    "她的中文發音非常標準，聽起來就像台灣人一樣。",
+    "這部鋼琴的聲音不太準，需要再檢查一下。",
+    "現代企業需要想想怎麼透過人工智慧增加效率。",
+    "要有好的管理能力要從管理自己的生活開始。",
+    "他是一個會計系的學生，需要上很多數學課才能畢業。",
+    "他家的經濟狀況不太好，需要他去打工才能付大學的學費。",
+    "老師總是很樂意幫助學生解決學習上的問題。",
+    "這個問題和我們今天要上的課有關，我們可以先討論一下。",
+    "學習任何語言都要先了解語法才能做正確的句子。",
+    "他正在進行關於環境保護的重要研究。",
+    "她畢業後打算回到家鄉的小學教書，那裡的老師不太多。",
+    "找到適合自己的學習方法很重要，每個方法都應該試試看。",
+    "他來台灣上大學的目的是要留在台灣工作。",
+    "這所大學有很多國際學生，來自印尼、日本、韓國什麼的都有。",
+    "他的工作是把中文文件翻譯成英文給客戶看。",
+    "這個國家的外交人員很聰明，都能說很多種語言。",
+    "這家公司的工作人員都很客氣，英文也非常流利。",
+    "他打算趁暑假去打工，充實自己的能力跟經驗。",
+    "他的工作非常需要專業人員，不是誰來做都可以的。",
+    "你要努力充實自己的專業能力，畢業以後才能找到好工作。",
+    "加拿大是一個在美國北方的國家，冬天非常冷。",
+    "他以後想開公司，所以打算去念企業管理系。",
+    "他的英文很好，有時間也學中文，因為以後想要念國際關係系。"
+  ],
+  "15": [
+    "春節對華人來說是最重要的傳統節日，全家人都會聚在一起吃飯。",
+    "我的伯伯每年過年都會從美國回來和我們一起圍爐。",
+    "媽媽準備了豐盛的年夜飯，全家人聚在一起，一邊吃一邊聊。",
+    "不好意思這麼晚打擾您，但有重要的事情需要討論。",
+    "他的女兒今年考上了台灣大學，全家人都很高興。",
+    "哥哥在國外工作已經五年了，今年終於能回來跟我們過年了。",
+    "除夕夜全家人圍爐吃火鍋，一邊聊天一邊看電視，氣氛非常溫馨。",
+    "過年送紅包的意思是希望新的一年平安順利。",
+    "過年的時候每個人都會回到老家跟家人團聚幾天。",
+    "孩子最喜歡過年了!因為可以拿到很多壓歲錢。",
+    "新年貼春聯的意思是希望新的一年吉祥如意。",
+    "爺爺年紀雖然大了，但身體還是很健康。",
+    "大家會在過年的時候拜訪親戚、朋友，祝他們新年快樂。",
+    "除夕夜我們全家人一起守歲到半夜十二點。",
+    "小弟弟太累了，在沙發上就睡著了。",
+    "長輩給孩子壓歲錢是希望他們健康平安。",
+    "新年見面的時候大家都會說恭喜發財、吉祥如意。",
+    "我已經把房間打掃好了，歡迎你們來我的家玩。",
+    "中秋節是華人社會中的重要節日，大家會一起吃月餅賞月。",
+    "過年前大家都要打掃房子，把窗戶、門都要好好地擦乾淨。",
+    "歡迎你來我家玩，除了餃子，另外我還準備了很多好吃的菜。",
+    "打掃完了就可以在門上貼上紅色的春聯，準備過新年。",
+    "除夕是農曆年的最後一天，也是一年最重要的日子。",
+    "過年的時候吃年糕，意思是年年高升，新的一年有好工作。",
+    "我們買橘子送朋友吧!橘子代表大吉大利，是很受歡迎的水果。",
+    "除夕夜全家人一起守歲，等新年到了，祝家人、朋友新年快樂。",
+    "關於端午節要吃粽子有很多不同的說法，最有名的是屈原的故事。",
+    "昨天太晚睡了，今天早上起得比較晚。",
+    "希望爺爺奶奶身體健康，能夠活得長長久久。",
+    "你要回國了，我覺得很捨不得，祝你一路平安。",
+    "他不喜歡出門，放假都在家聽音樂、看書。",
+    "我們大年初一要去跟爺爺奶奶拜年。",
+    "他不但會說中文，又會說英文和日文。",
+    "他今天早上五點就起來了，所以幫大家買了早餐。",
+    "世界各地的華人都會慶祝農曆新年這個傳統節日。",
+    "新年的時候要在門上貼上對聯，希望新的一年有好運。",
+    "年年有餘是過年常聽到的吉祥話，所以年夜飯常常會吃魚。",
+    "祝你在新的一年裡工作順利，步步高升。",
+    "新年快樂，祝你大吉大利，萬事如意。",
+    "除夕夜十二點的時候，很多人會放鞭炮慶祝新年。",
+    "大年初一是新年的第一天，要早起跟親戚朋友拜年。",
+    "大年初五是迎財神的日子，商店通常會在這一天開門。"
+  ]
+};
+// 在第 828 行后添加:
+  let currentSentence = "";
+  let rec = null;
+  const practiceRecords = [];
+  let quizRec = null;
+  let currentQuizSentence = "";
+  let currentQuizResult = null;
+  
+  function nowString() { 
+    const t = new Date(), 
+    p = n => String(n).padStart(2, '0'); 
+    return `${t.getFullYear()}-${p(t.getMonth() + 1)}-${p(t.getDate())} ${p(t.getHours())}:${p(t.getMinutes())}:${p(t.getSeconds())}`; 
+  }
+
+  function normalize(str) { 
+    if (!str) return ""; 
+    return str.replace(/[\s\p{P}\p{S}]/gu, '').replace(/[Ａ-Ｚａ-ｚ０-９]/g, s => String.fromCharCode(s.charCodeAt(0) - 0xFEE0)); 
+  }
+
+  // ---- Checkbox UI ----
+  function renderLessonChecks() {
+    const box = document.getElementById("lessonChecks");
+    box.innerHTML = "";
+    Object.entries(lessons).forEach(([k, arr]) => {
+      const id = "chk_" + btoa(encodeURIComponent(k)).replace(/=+/g, "");
+      const div = document.createElement("div");
+      div.className = "check-item";
+      div.innerHTML = `<input type="checkbox" id="${id}" name="lessonChk" value="${k}">
+                     <label for="${id}">${k}（${(arr || []).length} 句）</label>`;
+      box.appendChild(div);
+    });
+    updateCounts();
+  }
+
+  function getCheckedLessons() {
+    return Array.from(document.querySelectorAll('input[name="lessonChk"]:checked')).map(el => el.value);
+  }
+
+  function checkAllLessons() {
+    document.querySelectorAll('input[name="lessonChk"]').forEach(el => el.checked = true);
+    updateCounts();
+  }
+
+  function uncheckAllLessons() {
+    document.querySelectorAll('input[name="lessonChk"]').forEach(el => el.checked = false);
+    updateCounts();
+  }
+
+  function updateCounts() {
+    const keys = getCheckedLessons();
+    const pool = []; 
+    keys.forEach(k => { 
+      (lessons[k] || []).forEach(s => pool.push(s)); 
+    });
+    document.getElementById("selCount").innerText = keys.length;
+    document.getElementById("sentCount").innerText = pool.length;
+  }
+  
+  document.addEventListener("change", (e) => {
+    if (e.target && e.target.name === "lessonChk") {
+      updateCounts();
+    }
+  });
+
+  renderLessonChecks();
+
+  // ---- Diff / scoring ----
+  function diffAlign(aRaw, bRaw) {
+    const a = normalize(aRaw), b = normalize(bRaw), n = a.length, m = b.length;
+    const dp = Array.from({ length: n + 1 }, () => Array(m + 1).fill(0));
+    const bt = Array.from({ length: n + 1 }, () => Array(m + 1).fill(null));
+    for (let i = 0; i <= n; i++) { 
+      dp[i][0] = i; 
+      bt[i][0] = 'U'; 
+    }
+    for (let j = 0; j <= m; j++) { 
+      dp[0][j] = j; 
+      bt[0][j] = 'L'; 
+    }
+    for (let i = 1; i <= n; i++) { 
+      for (let j = 1; j <= m; j++) {
+        const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+        const d = dp[i - 1][j - 1] + cost, u = dp[i - 1][j] + 1, l = dp[i][j - 1] + 1;
+        const best = Math.min(d, u, l); 
+        dp[i][j] = best; 
+        bt[i][j] = best === d ? 'D' : best === u ? 'U' : 'L';
+      }
+    }
+    let i = n, j = m, ops = []; 
+    while (i > 0 || j > 0) { 
+      const mv = bt[i][j];
+      if (mv === 'D') { 
+        ops.push({ type: a[i - 1] === b[j - 1] ? 'EQ' : 'SUB', a: a[i - 1], b: b[j - 1] }); 
+        i--; 
+        j--; 
+      } else if (mv === 'U') { 
+        ops.push({ type: 'DEL', a: a[i - 1], b: '' }); 
+        i--; 
+      } else { 
+        ops.push({ type: 'INS', a: '', b: b[j - 1] }); 
+        j--; 
+      }
+    }
+    ops.reverse(); 
+    return { distance: dp[n][m], ops, baseLen: Math.max(1, a.length) };
+  }
+  
+  function renderDiffHTML(targetRaw, heardRaw) {
+    const { distance, ops, baseLen } = diffAlign(targetRaw, heardRaw);
+    const A = [], B = [];
+    for (const op of ops) {
+      if (op.type === 'EQ') { 
+        A.push(`<span class="ok">${op.a}</span>`); 
+        B.push(`<span class="ok">${op.b}</span>`); 
+      } else if (op.type === 'SUB') { 
+        A.push(`<span class="highlight" title="應為：${op.a}">${op.a}</span>`); 
+        B.push(`<span class="highlight" title="辨為：${op.b}">${op.b}</span>`); 
+      } else if (op.type === 'DEL') { 
+        A.push(`<span class="highlight" title="未唸出：${op.a}">${op.a}</span>`); 
+        B.push(`<span class="highlight" title="未唸出">∅</span>`); 
+      } else if (op.type === 'INS') { 
+        A.push(`<span class="highlight" title="多唸">∅</span>`); 
+        B.push(`<span class="highlight" title="多唸：${op.b}">${op.b}</span>`); 
+      }
+    }
+    const pct = Math.round(Math.max(0, 1 - distance / baseLen) * 100);
+    const html = `<div class="row"><span class="label">例句：</span>${A.join('')}</div><div class="row"><span class="label">辨識：</span>${B.join('')}</div>`;
+    return { html, pct };
+  }
+
+  function feedbackByScore(pct) {
+    if (pct >= 95) return "太棒了！幾乎完全正確，維持清晰的咬字與穩定的語速。Excellent! Nearly perfect accuracy—keep your articulation clear and pace steady.";
+    if (pct >= 85) return "很不錯！再注意個別字的收尾與連音，放慢一點更穩。Great work! Watch final consonants and liaison; a slightly slower pace adds stability.";
+    if (pct >= 70) return "有進步！建議先跟著示範慢速朗讀，針對高光字多練幾次。Good progress! Shadow the demo slowly and practice the highlighted characters.";
+    if (pct >= 50) return "別急，先分段朗讀並重複練習，再完整朗讀一次。Don't rush—read in chunks, repeat, then attempt a full read.";
+    return "加油！先聽示範兩遍，逐字跟讀，確認每個字都有發到位。Keep at it! Listen twice, echo word-by-word, and ensure each syllable lands.";
+  }
+  
+  function quizOverallFeedback(totalPct) {
+    if (totalPct >= 95) return { zh: "太棒了！幾乎完全正確，維持清晰的咬字與穩定的語速。", en: "Excellent! Nearly perfect accuracy—keep your articulation clear and pace steady." };
+    if (totalPct >= 85) return { zh: "很不錯！再注意個別字的收尾與連音，放慢一點更穩。", en: "Great work! Watch final consonants and liaison; a slightly slower pace adds stability." };
+    if (totalPct >= 70) return { zh: "有進步！建議跟著示範慢速朗讀，針對高光字多練幾次。", en: "Good progress! Shadow the demo slowly and practice the highlighted characters." };
+    if (totalPct >= 50) return { zh: "別急，先分段朗讀並重複練習，再完整朗讀一次。", en: "Don't rush—read in chunks, repeat, then attempt a full read." };
+    return { zh: "加油！先聽示範兩遍，逐字跟讀，確認每個字都有發到位。", en: "Keep at it! Listen twice, echo word-by-word, and ensure each syllable lands." };
+  }
+
+  // ---- Pool from checked lessons ----
+  function poolFromChecked() {
+    const keys = getCheckedLessons();
+    const pool = []; 
+    keys.forEach(k => { 
+      (lessons[k] || []).forEach(s => pool.push([k, s])); 
+    });
+    return pool;
+  }
+
+  // ---- Practice ----
+  function newSentence() {
+    const pool = poolFromChecked(); 
+    if (pool.length === 0) { 
+      alert("請先勾選至少一個課次。"); 
+      return; 
+    }
+    const [key, s] = pool[Math.floor(Math.random() * pool.length)];
+    currentSentence = s;
+    practiceStartTime = Date.now(); practiceTtsCount = 0; practiceAttempt = 0;
+    logResearchEvent('practice_new_sentence',{lesson:key});
+    document.getElementById("sentence").innerText = `（${key}）${s}`;
+    document.getElementById("result").innerText = "尚無結果";
+    document.getElementById("diff").innerText = "尚無結果";
+    document.getElementById("accuracy").innerText = "—";
+    document.getElementById("feedback").innerText = "";
+  }
+  
+  function playSentence() {
+    if (!currentSentence) { 
+      alert("請先生成句子！"); 
+      return; 
+    }
+    const u = new SpeechSynthesisUtterance(currentSentence); 
+    u.lang = "zh-TW"; 
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+    practiceTtsCount++;
+    logResearchEvent('practice_tts',{lesson:findLessonForSentence(currentSentence),tts_count:practiceTtsCount});
+  }
+  
+  function startRecognition() {
+    if (!('webkitSpeechRecognition' in window)) {
+      alert("此瀏覽器不支援語音辨識，請使用 Chrome。");
+      return;
+    }
+    if (!currentSentence) {
+      alert("請先生成句子！");
+      return;
+    }
+    if (rec) {
+      rec.stop();
+    }
+    
+    rec = new webkitSpeechRecognition();
+    rec.lang = "zh-TW";
+    rec.continuous = false;
+    rec.interimResults = false;
+    
+    rec.onresult = function(e) {
+      const recognizedText = e.results[0][0].transcript;
+      document.getElementById("result").innerText = recognizedText || "（未取得辨識）";
+      const { html, pct } = renderDiffHTML(currentSentence, recognizedText);
+      document.getElementById("diff").innerHTML = html;
+      document.getElementById("accuracy").innerText = `${pct}%`;
+      document.getElementById("feedback").innerText = feedbackByScore(pct);
+      
+      const name = document.getElementById("studentName").value;
+      const sid = document.getElementById("studentId").value;
+      practiceRecords.push({ 
+        name: name, sid: sid, time: nowString(), sentence: currentSentence, recognized: recognizedText, accuracy: pct, feedback: feedbackByScore(pct) 
+      });
+      const charData=buildCharResearchData(currentSentence,recognizedText);
+      logResearchEvent('practice_result',{lesson:findLessonForSentence(currentSentence),score:pct,attempt:practiceAttempt,tts_count:practiceTtsCount,completion_time_sec:practiceStartTime?Math.round((Date.now()-practiceStartTime)/1000):null,...charData});
+      toggleRecButtons(false);
+    };
+
+    rec.onend = () => toggleRecButtons(false);
+    rec.onerror = (e) => {
+      console.error("錄音錯誤:", e);
+      alert("錄音發生錯誤，請重試或檢查麥克風權限。");
+      toggleRecButtons(false);
+    };
+
+    practiceAttempt++;
+    logResearchEvent('practice_recording',{lesson:findLessonForSentence(currentSentence),attempt:practiceAttempt});
+    try {
+      rec.start();
+      toggleRecButtons(true);
+    } catch (err) {
+      console.error("啟動錄音時發生錯誤:", err);
+      alert("無法啟動錄音，請確認已授予麥克風權限，並使用支援的瀏覽器。");
+      toggleRecButtons(false);
+    }
+  }
+
+  function stopRecognition() {
+    if (rec) {
+      try {
+        rec.stop();
+      } catch (e) {
+        try {
+          rec.abort();
+        } catch (e2) {}
+      }
+      rec = null;
+    }
+    toggleRecButtons(false);
+  }
+
+  function toggleRecButtons(recording) {
+    const startBtn = document.getElementById("btnStart");
+    const stopBtn = document.getElementById("btnStop");
+    startBtn.disabled = recording;
+    stopBtn.disabled = !recording;
+    startBtn.classList.toggle("recording", recording);
+    startBtn.textContent = recording ? "🔴 錄音中..." : "🎙️ 開始錄音";
+  }
+
+  function downloadTxt() {
+    if (practiceRecords.length === 0) {
+      alert("尚無成績可下載。請先完成一次錄音練習。");
+      return;
+    }
+    const lines = ["【中文口語發音練習（Book2_A2）｜成績單】", `匯出時間：${nowString()}`, "", "姓名\t學號\t時間\t例句\t辨識結果\t正確率(%)\t建議與回饋"];
+    const clean = s => (s || "").replace(/\r?\n/g, " ").trim();
+    practiceRecords.forEach(r => lines.push(`${clean(r.name)}\t${clean(r.sid)}\t${r.time}\t${clean(r.sentence)}\t${clean(r.recognized)}\t${r.accuracy}\t${clean(r.feedback)}`));
+    const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/plain;charset=utf-8;" }),
+      url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "practice_results.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // ---- Quiz ----
+  let quizQueue = [],
+    quizIndex = -1,
+    quizHeard = "",
+    quizRecords = [];
+  
+  function setQuizState(t) {
+    document.getElementById("quizState").innerText = t;
+  }
+  
+  function startQuiz() {
+    const pool = poolFromChecked().map(([k, s]) => s);
+    if (pool.length < 1) {
+      alert("請先勾選至少一個課次。");
+      return;
+    }
+    quizQueue = [];
+    const temp = [...pool];
+    for (let i = 0; i < 3; i++) {
+      if (temp.length === 0) break;
+      const idx = Math.floor(Math.random() * temp.length);
+      quizQueue.push(temp.splice(idx, 1)[0]);
+    }
+    if (quizQueue.length < 3) {
+      while (quizQueue.length < 3 && pool.length > 0) quizQueue.push(pool[Math.floor(Math.random() * pool.length)]);
+    }
+    quizRecords.length = 0;
+    quizStartTime = Date.now(); quizTtsCount = 0;
+    logResearchEvent('quiz_start',{selected_lessons:getCheckedLessons()});
+    quizIndex = -1;
+    quizHeard = "";
+    document.getElementById("quizSummary").style.display = "none";
+    document.getElementById("quizFeedback").innerText = "—";
+    setQuizState("已抽題，按「開始錄音」後作答，完成請按「提交本題」。");
+    nextQuiz();
+  }
+  
+  function nextQuiz() {
+    quizIndex++;
+    if (quizIndex >= quizQueue.length) {
+      finishQuiz();
+      return;
+    }
+    currentQuizSentence = quizQueue[quizIndex];
+    document.getElementById("quizSentence").innerText = `第 ${quizIndex + 1} 題：${currentQuizSentence}`;
+    document.getElementById("quizHeard").innerText = "—";
+    document.getElementById("quizDiff").innerText = "（高光差異會顯示在這裡）";
+    quizHeard = "";
+    setQuizState(`作答中（第 ${quizIndex + 1}/3 題）`);
+  }
+  
+  function quizPlay() {
+    const txt = quizQueue[quizIndex];
+    if (!txt) {
+      alert("請先開始測驗。");
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(txt);
+    u.lang = "zh-TW";
+    speechSynthesis.cancel();
+    speechSynthesis.speak(u);
+    quizTtsCount++;
+    logResearchEvent('quiz_tts',{lesson:findLessonForSentence(txt),question:quizIndex+1,tts_count:quizTtsCount});
+  }
+  
+  function quizRecord() {
+    if (!('webkitSpeechRecognition' in window)) {
+      alert("此瀏覽器不支援語音辨識，請使用 Chrome。");
+      return;
+    }
+    if (!currentQuizSentence) {
+      alert("請先開始測驗！");
+      return;
+    }
+    
+    // 每次都建立新的實例，以應對行動裝置的限制
+    quizRec = new webkitSpeechRecognition();
+    quizRec.lang = "zh-TW";
+    quizRec.continuous = false;
+    quizRec.interimResults = false;
+    
+    quizRec.onresult = function(e) {
+      const heard = e.results[0][0].transcript || "";
+      quizHeard = heard;
+      document.getElementById("quizHeard").innerText = heard || "（未取得辨識）";
+      const { html, pct } = renderDiffHTML(currentQuizSentence, heard);
+      document.getElementById("quizDiff").innerHTML = html;
+      currentQuizResult = { sentence: currentQuizSentence, heard, pct };
+      toggleQuizRecButtons(false);
+    };
+    
+    quizRec.onend = () => toggleQuizRecButtons(false);
+    quizRec.onerror = (e) => {
+      console.error("測驗語音辨識錯誤:", e);
+      toggleQuizRecButtons(false);
+      alert("錄音發生錯誤，請重試或檢查麥克風權限。");
+    };
+    
+    logResearchEvent('quiz_recording',{lesson:findLessonForSentence(currentQuizSentence),question:quizIndex+1});
+    try {
+      quizRec.start();
+      toggleQuizRecButtons(true);
+    } catch (err) {
+      console.error("啟動測驗錄音錯誤:", err);
+      alert("無法啟動錄音，請確認已授予麥克風權限。");
+      toggleQuizRecButtons(false);
+    }
+  }
+  
+  function quizStop() {
+    if (quizRec) {
+      try {
+        quizRec.stop();
+      } catch (e) {
+        try {
+          quizRec.abort();
+        } catch (e2) {}
+      }
+      quizRec = null;
+    }
+    toggleQuizRecButtons(false);
+  }
+  
+  function toggleQuizRecButtons(recording) {
+    const startBtn = document.getElementById("btnQuizStart");
+    const stopBtn = document.getElementById("btnQuizStop");
+    startBtn.disabled = recording;
+    stopBtn.disabled = !recording;
+    startBtn.classList.toggle("recording", recording);
+    startBtn.textContent = recording ? "🔴 錄音中..." : "🎙️ 2開始錄音";
+  }
+  
+  function quizSubmit() {
+    const txt = quizQueue[quizIndex];
+    if (!txt) {
+      alert("請先開始測驗。");
+      return;
+    }
+    if (!quizHeard) {
+      alert("請先錄音再提交本題。");
+      return;
+    }
+    const { html, pct } = renderDiffHTML(txt, quizHeard);
+    quizRecords.push({ idx: quizIndex + 1, sentence: txt, recognized: quizHeard, pct, diffHTML: html });
+    const charData=buildCharResearchData(txt,quizHeard);
+    logResearchEvent('quiz_result',{lesson:findLessonForSentence(txt),question:quizIndex+1,score:pct,...charData});
+    quizHeard = ""; // 提交後清空，避免重複提交
+    nextQuiz();
+  }
+  
+  function finishQuiz() {
+    setQuizState("測驗完成");
+    const total = Math.round(quizRecords.reduce((s, r) => s + r.pct, 0) / quizRecords.length);
+    document.getElementById("quizTotal").innerText = total + "%";
+    const fb = quizOverallFeedback(total);
+    document.getElementById("quizFeedback").innerText = `${fb.zh} / ${fb.en}`;
+    const name = (document.getElementById("studentName").value || "").trim();
+    const sid = (document.getElementById("studentId").value || "").trim();
+    const who = (name || sid) ? `${name} / ${sid}` : "（未填）";
+    document.getElementById("quizWho").innerText = who;
+    const tbody = document.querySelector("#quizTable tbody");
+    tbody.innerHTML = "";
+    quizRecords.forEach(r => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `<td>${r.idx}</td><td>${r.diffHTML}</td><td>${r.pct}%</td>`;
+      tbody.appendChild(tr);
+    });
+    document.getElementById("quizSummary").style.display = "block";
+    logResearchEvent('quiz_complete',{score:total,question_count:quizRecords.length,tts_count:quizTtsCount,completion_time_sec:quizStartTime?Math.round((Date.now()-quizStartTime)/1000):null,selected_lessons:getCheckedLessons()});
+  }
+
+  function downloadQuizTXT() {
+    if (quizRecords.length !== 3) {
+      alert("請先完成一次 3 題的測驗。");
+      return;
+    }
+    const total = Math.round(quizRecords.reduce((s, r) => s + r.pct, 0) / quizRecords.length),
+      fb = quizOverallFeedback(total);
+    const name = (document.getElementById("studentName").value || "").trim();
+    const sid = (document.getElementById("studentId").value || "").trim();
+    const lines = ["【中文口語發音練習（Book2_A2）｜成績單】", `匯出時間：${nowString()}`, `姓名：${name}`, `學號：${sid}`, `總正確率：${total}%`, `總評（中文）：${fb.zh}`, `Overall Feedback (EN): ${fb.en}`, "", "題次\t例句\t辨識結果\t正確率(%)"];
+    const clean = s => (s || "").replace(/\r?\n/g, " ").trim();
+    quizRecords.forEach(r => lines.push(`${r.idx}\t${clean(r.sentence)}\t${clean(r.recognized)}\t${r.pct}`));
+    const blob = new Blob(["\uFEFF" + lines.join("\n")], { type: "text/plain;charset=utf-8;" }),
+      url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "quiz_results.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+  
+  function downloadQuizCSV() {
+    if (quizRecords.length !== 3) {
+      alert("請先完成一次 3 題的測驗。");
+      return;
+    }
+    const total = Math.round(quizRecords.reduce((s, r) => s + r.pct, 0) / quizRecords.length),
+      fb = quizOverallFeedback(total);
+    const name = (document.getElementById("studentName").value || "").trim();
+    const sid = (document.getElementById("studentId").value || "").trim();
+    const rows = [
+      ["題次", "例句", "辨識結果", "正確率(%)"].join(",")
+    ];
+    const esc = s => '"' + String(s || "").replace(/"/g, '""') + '"';
+    quizRecords.forEach(r => rows.push([r.idx, esc(r.sentence), esc(r.recognized), r.pct].join(",")));
+    rows.push(["", "", "", ""].join(","));
+    rows.push(["姓名", name, "", ""].join(","));
+    rows.push(["學號", sid, "", ""].join(","));
+    rows.push(["總正確率(%)", total, "", ""].join(","));
+    rows.push(["總評(中文/EN)", esc(fb.zh + " / " + fb.en), "", ""].join(","));
+    const csv = "\uFEFF" + rows.join("\n");
+    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" }),
+      url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "quiz_results.csv";
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+</script>
+</body>
+
+</html>
+
+
+
+
+
+
